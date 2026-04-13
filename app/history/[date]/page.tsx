@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import SummaryCard from '@/components/SummaryCard';
 
@@ -53,7 +54,7 @@ export default async function ReportDetailPage({ params }: PageProps) {
             <p className="text-gray-600 mb-8" style={{ fontFamily: 'Roboto, sans-serif' }}>
               The date format is invalid. Please use YYYY-MM-DD.
             </p>
-            <a
+            <Link
               href="/history"
               className="inline-flex items-center gap-2 px-4 py-2 text-white bg-[#1E40AF] rounded-lg hover:opacity-90 transition-opacity cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E40AF] focus-visible:ring-offset-2"
             >
@@ -72,7 +73,7 @@ export default async function ReportDetailPage({ params }: PageProps) {
                 />
               </svg>
               Back to History
-            </a>
+            </Link>
           </div>
         </div>
       </main>
@@ -102,7 +103,7 @@ export default async function ReportDetailPage({ params }: PageProps) {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="flex flex-col items-center justify-center min-h-[60vh]">
             {/* Back link */}
-            <a
+            <Link
               href="/history"
               className="self-start inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#DC2626] mb-8 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E40AF] focus-visible:ring-offset-2 rounded"
             >
@@ -121,7 +122,7 @@ export default async function ReportDetailPage({ params }: PageProps) {
                 />
               </svg>
               Back to History
-            </a>
+            </Link>
 
             <div className="text-center">
               <h1
@@ -224,7 +225,7 @@ export default async function ReportDetailPage({ params }: PageProps) {
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Back link */}
-          <a
+          <Link
             href="/history"
             className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#DC2626] mb-4 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E40AF] focus-visible:ring-offset-2 rounded"
           >
@@ -243,7 +244,7 @@ export default async function ReportDetailPage({ params }: PageProps) {
               />
             </svg>
             Back to History
-          </a>
+          </Link>
 
           <div className="flex items-center justify-between">
             <div>
@@ -338,12 +339,12 @@ export default async function ReportDetailPage({ params }: PageProps) {
             >
               There was an error generating this report. Please try again later or check the cron job logs.
             </p>
-            <a
+            <Link
               href="/"
               className="inline-flex items-center gap-2 px-4 py-2 text-white bg-[#1E40AF] rounded-lg hover:opacity-90 transition-opacity cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E40AF] focus-visible:ring-offset-2"
             >
               Go to Today&apos;s Report
-            </a>
+            </Link>
           </div>
         </div>
       ) : report.status === 'pending' ? (

@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import ReportListItem from '@/components/ReportListItem';
 
@@ -59,7 +60,7 @@ export default async function HistoryPage() {
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Back link */}
-          <a
+          <Link
             href="/"
             className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#DC2626] mb-4 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E40AF] focus-visible:ring-offset-2 rounded"
           >
@@ -78,7 +79,7 @@ export default async function HistoryPage() {
               />
             </svg>
             Back to Today
-          </a>
+          </Link>
 
           <h1
             className="text-4xl font-bold text-[#450A0A] tracking-tight"
