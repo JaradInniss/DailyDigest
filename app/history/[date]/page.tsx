@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import SummaryCard from '@/components/SummaryCard';
+import ReportSummaryHeader from '@/components/ReportSummaryHeader';
+import { generateUnifiedSummary } from '@/lib/gemini/generateUnifiedSummary';
 
 interface SummaryWithCategory {
   id: string;
@@ -9,8 +11,14 @@ interface SummaryWithCategory {
   source_urls: string[];
   thumbnail_url: string | null;
   categories: {
+    slug: string;
     label: string;
   } | null;
+}
+
+interface CategoryTag {
+  slug: string;
+  label: string;
 }
 
 interface ReportWithSummaries {
@@ -80,14 +88,14 @@ export default async function ReportDetailPage({ params }: PageProps) {
     );
   }
 
-  // Fetch the report for this date
+  // Fetch the report for this date (including unified_summary)
   const { data: report, error: reportError } = await supabaseAdmin
     .from('reports')
-    .select('id, report_date, status')
+    .select('id, report_date, status, unified_summary')
     .eq('report_date', date)
     .maybeSingle();
 
-  if (reportError) {
+  if (reportError && Object.keys(reportError).length > 0) {
     console.error('[ReportDetailPage] Error fetching report:', reportError);
   }
 
@@ -157,33 +165,87 @@ export default async function ReportDetailPage({ params }: PageProps) {
     .eq('report_id', report.id)
     .order('created_at');
 
-  if (summariesError) {
+  if (summariesError && Object.keys(summariesError).length > 0) {
     console.error('[ReportDetailPage] Error fetching summaries:', summariesError);
   }
 
-  // Fetch category labels
+  // Fetch category labels and slugs
   const categoryIds = (summariesData || []).map((s) => s.category_id).filter(Boolean);
-  let categoryLabels: Record<string, string> = {};
+  let categoryData: Record<string, { slug: string; label: string }> = {};
 
   if (categoryIds.length > 0) {
     const { data: categoriesData } = await supabaseAdmin
       .from('categories')
-      .select('id, label')
+      .select('id, slug, label')
       .in('id', categoryIds);
 
     if (categoriesData) {
-      categoryLabels = categoriesData.reduce<Record<string, string>>((acc, cat) => {
-        acc[cat.id] = cat.label;
+      categoryData = categoriesData.reduce<Record<string, { slug: string; label: string }>>((acc, cat) => {
+        acc[cat.id] = { slug: cat.slug, label: cat.label };
         return acc;
       }, {});
     }
   }
 
-  // Attach category labels to summaries
+  // Attach category labels and slugs to summaries
   const typedSummaries = (summariesData || []).map((s) => ({
     ...s,
-    categories: s.category_id ? { label: categoryLabels[s.category_id] || 'Unknown' } : null,
+    categories: s.category_id
+      ? { slug: categoryData[s.category_id]?.slug || '', label: categoryData[s.category_id]?.label || 'Unknown' }
+      : null,
   })) as unknown as SummaryWithCategory[];
+
+  // Build category tags for ReportSummaryHeader
+  const categoryTagsMap = typedSummaries.reduce<Record<string, CategoryTag>>((acc, summary) => {
+    if (!summary.categories) return acc;
+    const catKey = summary.categories.slug;
+
+    // Only add if we haven't seen this category yet
+    if (!acc[catKey]) {
+      acc[catKey] = {
+        slug: summary.categories.slug,
+        label: summary.categories.label,
+      };
+    }
+    return acc;
+  }, {});
+
+  const categoryTags = Object.values(categoryTagsMap).sort((a, b) => a.label.localeCompare(b.label));
+
+  // Get unified summary from the report (stored during generation)
+  // If not stored (null/empty), generate dynamically for backward compatibility
+  let unifiedSummary = report?.unified_summary || '';
+
+  if (!unifiedSummary && categoryTags.length > 0) {
+    // Build inputs for unified summary generation
+    const categoryInputsForUnified = typedSummaries.reduce<Record<string, { categoryLabel: string; topicHeadline: string; summaryBody: string }>>((acc, summary) => {
+      if (!summary.categories) return acc;
+      const catKey = summary.categories.slug;
+      if (!acc[catKey]) {
+        acc[catKey] = {
+          categoryLabel: summary.categories.label,
+          topicHeadline: summary.topic_headline,
+          summaryBody: summary.summary_body,
+        };
+      }
+      return acc;
+    }, {});
+
+    const categoryInputs = Object.values(categoryInputsForUnified);
+    if (categoryInputs.length > 0) {
+      const result = await generateUnifiedSummary(categoryInputs);
+      if ('summary' in result) {
+        unifiedSummary = result.summary;
+        // Optionally save back to database for future visits
+        if (report?.id) {
+          await supabaseAdmin
+            .from('reports')
+            .update({ unified_summary: unifiedSummary })
+            .eq('id', report.id);
+        }
+      }
+    }
+  }
 
   // Format date for display
   const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
@@ -246,7 +308,7 @@ export default async function ReportDetailPage({ params }: PageProps) {
             Back to History
           </Link>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-6">
             <div>
               <h1
                 className="text-4xl font-bold text-[#450A0A] tracking-tight"
@@ -304,6 +366,11 @@ export default async function ReportDetailPage({ params }: PageProps) {
               {statusLabels[report.status]}
             </span>
           </div>
+
+          {/* Report Summary Header - category tags and unified summary */}
+          {categoryTags.length > 0 && (
+            <ReportSummaryHeader categoryTags={categoryTags} unifiedSummary={unifiedSummary} />
+          )}
         </div>
       </header>
 

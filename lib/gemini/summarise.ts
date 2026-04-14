@@ -70,7 +70,15 @@ Fields required:
     const text = response.text().trim();
 
     // Strip markdown code fences if present
-    const jsonString = text.replace(/^```json\s*/i, '').replace(/\s*```$/i, '');
+    let jsonString = text.replace(/^```json\s*/i, '').replace(/\s*```$/i, '');
+
+    // If the response still isn't valid JSON, try to extract just the JSON object
+    // This handles cases where Gemini returns extra text before/after the JSON
+    const firstBrace = jsonString.indexOf('{');
+    const lastBrace = jsonString.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+    }
 
     const parsed = JSON.parse(jsonString) as {
       topicHeadline?: unknown;

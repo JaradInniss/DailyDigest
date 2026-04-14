@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-full flex flex-col antialiased bg-[#FEF2F2] text-[#450A0A]">
+      <body className="min-h-full flex flex-col antialiased bg-[#FEF2F2] text-[#450A0A]" suppressHydrationWarning>
         <PushSubscriber />
         <NavBar />
         <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-7xl mx-auto w-full">

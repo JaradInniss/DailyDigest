@@ -1,6 +1,8 @@
 import { supabaseAdmin } from '@/lib/supabase/server';
 import CategoryCard from '@/components/CategoryCard';
-import { setAllCategories } from './actions';
+import TimezoneSelector from '@/components/TimezoneSelector';
+import { setAllCategories, getUserTimezone } from './actions';
+import { Globe } from 'lucide-react';
 
 export const metadata = {
   title: 'Settings — Daily Digest',
@@ -25,6 +27,9 @@ export default async function SettingsPage() {
     .single();
 
   const todayReportId = todayReport?.id ?? null;
+
+  // Get user's timezone setting
+  const userTimezone = await getUserTimezone();
 
   return (
     <main className="min-h-screen bg-[#FEF2F2]">
@@ -68,7 +73,7 @@ export default async function SettingsPage() {
       </header>
 
       {/* Category Grid */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {categories?.map((category) => (
             <CategoryCard
@@ -80,6 +85,27 @@ export default async function SettingsPage() {
               todayReportId={todayReportId}
             />
           ))}
+        </div>
+      </section>
+
+      {/* Timezone Selector Section */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-[#FEF2F2]">
+              <Globe className="w-5 h-5 text-[#DC2626]" strokeWidth={2} aria-hidden="true" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-[#450A0A]" style={{ fontFamily: 'Newsreader, serif' }}>
+                Timezone Settings
+              </h2>
+              <p className="text-sm text-gray-500" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                The countdown and report time will be displayed in your selected timezone
+              </p>
+            </div>
+          </div>
+          
+          <TimezoneSelector currentTimezone={userTimezone} />
         </div>
       </section>
 

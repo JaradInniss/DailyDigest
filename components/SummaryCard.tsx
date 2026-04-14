@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { ExternalLink } from 'lucide-react';
+import { parseSource, formatSources, ParsedSource } from '@/lib/sources/parseSource';
 
 interface SummaryCardProps {
   categoryLabel: string;
@@ -18,6 +19,11 @@ export default function SummaryCard({
   sourceUrls,
   thumbnailUrl,
 }: SummaryCardProps) {
+  // Parse sources without async validation for immediate display
+  const parsedSources: ParsedSource[] = sourceUrls.length > 0 
+    ? formatSources(sourceUrls) 
+    : [];
+
   return (
     <article
       className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-200 cursor-default"
@@ -64,24 +70,28 @@ export default function SummaryCard({
 
       {/* Source URLs */}
       <div className="flex flex-wrap gap-2">
-        {(sourceUrls || []).map((url, index) => (
+        {parsedSources.map((source, index) => (
           <a
             key={index}
-            href={url}
+            href={source.displayUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="
+            className={`
               inline-flex items-center gap-1
               px-3 py-1.5 text-sm font-medium
-              text-[#1E40AF] bg-blue-50
               rounded-md
-              hover:bg-blue-100 transition-colors duration-150
+              hover:opacity-80 transition-opacity duration-150
               cursor-pointer
-              focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E40AF] focus-visible:ring-offset-1
-            "
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1
+              ${
+                source.isArticleUrl
+                  ? 'text-[#1E40AF] bg-blue-50 focus-visible:ring-[#1E40AF]'
+                  : 'text-gray-500 bg-gray-100 focus-visible:ring-gray-400'
+              }
+            `}
           >
             <ExternalLink className="h-4 w-4" size={16} />
-            Source {index + 1}
+            {source.name}
           </a>
         ))}
       </div>
