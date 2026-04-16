@@ -2,7 +2,7 @@
  * Returns the next cron execution time as a Date object.
  * Fixed at 10 AM UTC, configurable via CRON_HOUR_UTC constant.
  */
-export const CRON_HOUR_UTC = 10;
+export const CRON_HOUR_UTC = 7;
 
 export interface NextReportTime {
   nextRun: Date;
