@@ -21,7 +21,8 @@ export async function DELETE() {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const { error } = await supabase
     .from('reports')
     .delete()
@@ -42,7 +43,15 @@ async function handleRequest() {
   const headersList = await headers();
   const authHeader = headersList.get('authorization');
   const host = headersList.get('host') || '';
-  const isLocalRequest = host.includes('localhost') || host.includes('127.0.0.1');
+  // Extract hostname (strip port) and check against all loopback patterns
+  const hostname = host.split(':')[0];
+  const isLocalRequest =
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '[::1]' ||
+    hostname === '::1' ||
+    hostname === '0.0.0.0' ||
+    !hostname.includes('.'); // bare hostname like "newsapp" (hosts file)
 
   // Allow unauthenticated requests from localhost, require auth from other origins
   if (!isLocalRequest && (!authHeader || !authHeader.startsWith('Bearer '))) {
@@ -71,7 +80,8 @@ async function handleRequest() {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const { data: existing } = await supabase
     .from('reports')
     .select('id, status')

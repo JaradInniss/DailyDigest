@@ -23,7 +23,8 @@ interface GenerateReportResult {
  * 8. Sends a push notification
  */
 export async function generateReport(): Promise<GenerateReportResult> {
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   // --- Step 1: Fetch selected categories ---
   const { data: categories, error: catError } = await supabaseAdmin
