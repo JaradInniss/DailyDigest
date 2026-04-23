@@ -38,23 +38,16 @@ export async function DELETE() {
 
 async function handleRequest() {
   // --- Step 1: Validate Authorization header ---
-  // For personal single-user app: allow internal calls (same origin / localhost) without auth
-  // This enables the Generate button on the homepage to work
+  // For personal single-user app: allow browser-generated requests without auth.
+  // Browser fetches (sec-fetch-site=same-origin/none) are trusted.
+  // External cron calls (sec-fetch-site=cross-site) MUST provide Bearer auth.
   const headersList = await headers();
   const authHeader = headersList.get('authorization');
-  const host = headersList.get('host') || '';
-  // Extract hostname (strip port) and check against all loopback patterns
-  const hostname = host.split(':')[0];
-  const isLocalRequest =
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1' ||
-    hostname === '[::1]' ||
-    hostname === '::1' ||
-    hostname === '0.0.0.0' ||
-    !hostname.includes('.'); // bare hostname like "newsapp" (hosts file)
+  const secFetchSite = headersList.get('sec-fetch-site') || '';
+  const isBrowserRequest = secFetchSite === 'same-origin' || secFetchSite === 'none';
 
-  // Allow unauthenticated requests from localhost, require auth from other origins
-  if (!isLocalRequest && (!authHeader || !authHeader.startsWith('Bearer '))) {
+  // Allow unauthenticated requests from browsers, require auth from all other origins
+  if (!isBrowserRequest && (!authHeader || !authHeader.startsWith('Bearer '))) {
     return NextResponse.json(
       { error: 'Missing or invalid Authorization header' },
       { status: 401 }
