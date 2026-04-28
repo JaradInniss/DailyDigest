@@ -17,10 +17,12 @@ export default function GenerateButton({ className = '' }: GenerateButtonProps) 
     try {
       // First, try to delete any existing report for today with 'error' status
       // This allows retrying after a failed attempt
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       await fetch('/api/cron/generate-report', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'X-Timezone': timezone,
         },
       }).catch(() => { /* Ignore errors on delete, proceed with generation */ });
 
@@ -28,6 +30,7 @@ export default function GenerateButton({ className = '' }: GenerateButtonProps) 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Timezone': timezone,
         },
         credentials: 'include',
       });

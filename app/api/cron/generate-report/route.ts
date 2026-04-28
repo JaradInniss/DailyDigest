@@ -13,7 +13,13 @@ export async function POST() {
 }
 
 export async function DELETE() {
-  // Delete any existing report for today (used to allow retry after failure)
+  // Delete any existing report for today with 'error' status
+  // This allows retrying after a failed attempt
+  const headersList = await headers();
+  const secFetchSite = headersList.get('sec-fetch-site') || '';
+  const isBrowserRequest = secFetchSite === 'same-origin' || secFetchSite === 'none';
+  const browserTimezone = isBrowserRequest ? (headersList.get('x-timezone') || '') : '';
+
   const { createClient } = await import('@supabase/supabase-js');
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -21,8 +27,15 @@ export async function DELETE() {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  let today: string;
+  if (browserTimezone) {
+    const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: browserTimezone, year: 'numeric', month: '2-digit', day: '2-digit' });
+    const parts = formatter.formatToParts(new Date());
+    today = `${parts.find(p => p.type === 'year')!.value}-${parts.find(p => p.type === 'month')!.value}-${parts.find(p => p.type === 'day')!.value}`;
+  } else {
+    const now = new Date();
+    today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  }
   const { error } = await supabase
     .from('reports')
     .delete()
@@ -45,6 +58,9 @@ async function handleRequest() {
   const authHeader = headersList.get('authorization');
   const secFetchSite = headersList.get('sec-fetch-site') || '';
   const isBrowserRequest = secFetchSite === 'same-origin' || secFetchSite === 'none';
+
+  // Extract browser's timezone (sent manually by client via Intl.DateTimeFormat().resolvedOptions().timeZone)
+  const browserTimezone = isBrowserRequest ? (headersList.get('x-timezone') || '') : '';
 
   // Allow unauthenticated requests from browsers, require auth from all other origins
   if (!isBrowserRequest && (!authHeader || !authHeader.startsWith('Bearer '))) {
@@ -73,8 +89,16 @@ async function handleRequest() {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  // Use the same timezone as generateReport for the duplicate check
+  let today: string;
+  if (browserTimezone) {
+    const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: browserTimezone, year: 'numeric', month: '2-digit', day: '2-digit' });
+    const parts = formatter.formatToParts(new Date());
+    today = `${parts.find(p => p.type === 'year')!.value}-${parts.find(p => p.type === 'month')!.value}-${parts.find(p => p.type === 'day')!.value}`;
+  } else {
+    const now = new Date();
+    today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  }
   const { data: existing } = await supabase
     .from('reports')
     .select('id, status')
@@ -95,7 +119,7 @@ async function handleRequest() {
   // --- Step 3: Generate the report ---
   let result;
   try {
-    result = await generateReport();
+    result = await generateReport(browserTimezone || undefined);
     console.log('[generate-report] Report generation complete:', JSON.stringify(result));
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error during report generation';

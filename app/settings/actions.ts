@@ -45,7 +45,8 @@ export async function setAllCategories(value: boolean) {
 }
 
 export async function getTodayReportId(): Promise<string | null> {
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   const { data: report, error } = await supabaseAdmin
     .from('reports')

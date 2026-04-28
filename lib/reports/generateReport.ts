@@ -2,6 +2,7 @@ import { supabaseAdmin } from '@/lib/supabase/server';
 import { summariseCategory } from '@/lib/gemini/summarise';
 import { generateUnifiedSummary } from '@/lib/gemini/generateUnifiedSummary';
 import { sendPushNotification } from '@/lib/webpush/send';
+import { getUserTimezone } from '@/app/settings/actions';
 import type { SummaryResult } from '@/types/summary';
 
 interface GenerateReportResult {
@@ -9,6 +10,21 @@ interface GenerateReportResult {
   summaryCount: number;
   status: 'complete' | 'error';
   errors: string[];
+}
+
+function computeDateInTimezone(timezone: string): string {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const parts = formatter.formatToParts(now);
+  const year = parts.find(p => p.type === 'year')!.value;
+  const month = parts.find(p => p.type === 'month')!.value;
+  const day = parts.find(p => p.type === 'day')!.value;
+  return `${year}-${month}-${day}`;
 }
 
 /**
@@ -21,10 +37,13 @@ interface GenerateReportResult {
  * 6. Generates and stores unified summary
  * 7. Updates report status
  * 8. Sends a push notification
+ *
+ * @param timezone - IANA timezone string (e.g. 'Asia/Shanghai', 'America/New_York').
+ *                   If not provided, falls back to the user's stored timezone setting.
  */
-export async function generateReport(): Promise<GenerateReportResult> {
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+export async function generateReport(timezone?: string): Promise<GenerateReportResult> {
+  const tz = timezone || await getUserTimezone();
+  const today = computeDateInTimezone(tz);
 
   // --- Step 1: Fetch selected categories ---
   const { data: categories, error: catError } = await supabaseAdmin
