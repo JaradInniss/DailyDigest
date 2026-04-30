@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { generateReport } from '@/lib/reports/generateReport';
 import { headers } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 
 const CRON_SECRET = process.env.CRON_SECRET!;
 
@@ -130,7 +131,11 @@ async function handleRequest() {
     );
   }
 
-  // --- Step 4: Return success ---
+  // --- Step 4: Revalidate cached pages so new report appears immediately ---
+  revalidatePath('/');
+  revalidatePath('/history');
+
+  // --- Step 5: Return success ---
   return NextResponse.json(
     {
       reportId: result.reportId,

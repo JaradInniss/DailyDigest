@@ -6,18 +6,28 @@ import GenerateButton from '@/components/GenerateButton';
 import ReportCountdown from '@/components/ReportCountdown';
 import ReportSummaryHeader from '@/components/ReportSummaryHeader';
 import { generateUnifiedSummary } from '@/lib/gemini/generateUnifiedSummary';
+import { getUserTimezone } from '@/app/settings/actions';
 import { AlertTriangle, Loader2, CheckCircle2 } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Daily Digest',
   description: 'Your personalized daily news digest',
 };
 
-function getTodayDate(): string {
+function computeDateInTimezone(timezone: string): string {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const parts = formatter.formatToParts(now);
+  const year = parts.find(p => p.type === 'year')!.value;
+  const month = parts.find(p => p.type === 'month')!.value;
+  const day = parts.find(p => p.type === 'day')!.value;
   return `${year}-${month}-${day}`;
 }
 
@@ -46,7 +56,8 @@ interface ReportWithSummaries {
 }
 
 export default async function HomePage() {
-  const today = getTodayDate();
+  const timezone = await getUserTimezone();
+  const today = computeDateInTimezone(timezone);
 
   // Fetch today's report (including unified_summary)
   const { data: report, error: reportError } = await supabaseAdmin
