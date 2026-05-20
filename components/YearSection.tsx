@@ -41,7 +41,7 @@ export default function YearSection({ year, months }: YearSectionProps) {
 
       <div className="flex flex-row flex-wrap gap-4 w-full">
         {months.map((month) => (
-          <div key={month.monthKey} className="flex-1 min-w-[400px]">
+          <div key={month.monthKey} className="w-full md:flex-1 md:min-w-[400px]">
             <MonthCard
               monthKey={month.monthKey}
               monthLabel={getMonthLabel(month.monthKey)}

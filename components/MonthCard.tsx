@@ -97,19 +97,19 @@ export default function MonthCard({ monthKey, monthLabel, year, reports }: Month
           isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="px-4 pb-3">
-          <div className="grid grid-cols-7 gap-1 mb-1">
+        <div className="px-2 pb-2 sm:px-4 sm:pb-3">
+          <div className="hidden sm:grid grid-cols-7 gap-1 mb-1">
             {dayHeaders.map((day) => (
               <div
                 key={day}
-                className="text-center text-xs font-medium text-gray-400 py-1"
+                className="text-center text-[10px] sm:text-xs font-medium text-gray-400 py-0.5 sm:py-1"
                 style={{ fontFamily: 'Roboto, sans-serif' }}
               >
                 {day}
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
             {cells.map((week, weekIndex) =>
               week.map((cell, dayIndex) => {
                 const key = `${weekIndex}-${dayIndex}`;

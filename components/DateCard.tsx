@@ -44,15 +44,15 @@ export default function DateCard({ date, status, dayNumber }: DateCardProps) {
     return (
       <div
         className="
-          flex flex-col items-center justify-center p-2 rounded-lg border
+          flex flex-col items-center justify-center p-1 sm:p-2 rounded-lg border
           bg-gray-50 border-gray-200 cursor-not-allowed
         "
       >
-        <span className="text-xs font-medium text-gray-400 text-center leading-tight">
+        <span className="text-[10px] sm:text-xs font-medium text-gray-400 text-center leading-tight">
           No<br />Report
         </span>
         {dayNumber > 0 && (
-          <span className="text-sm font-medium text-gray-400 mt-1">
+          <span className="text-xs sm:text-sm font-medium text-gray-400 mt-0.5 sm:mt-1">
             {dayNumber}
           </span>
         )}
@@ -64,7 +64,7 @@ export default function DateCard({ date, status, dayNumber }: DateCardProps) {
     <Link
       href={`/history/${date}`}
       className={`
-        flex flex-col items-center justify-center p-2 rounded-lg border transition-all duration-150
+        flex flex-col items-center justify-center p-1 sm:p-2 rounded-lg border transition-all duration-150
         hover:shadow-md hover:-translate-y-0.5 hover:border-[#DC2626]
         cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E40AF] focus-visible:ring-offset-2
         ${config.bgClass}
@@ -72,10 +72,10 @@ export default function DateCard({ date, status, dayNumber }: DateCardProps) {
     >
       {StatusIcon && (
         <StatusIcon
-          className={`w-4 h-4 mb-1 ${config.iconClass} ${status === 'pending' ? 'animate-spin' : ''}`}
+          className={`w-3 h-3 sm:w-4 sm:h-4 mb-0.5 sm:mb-1 ${config.iconClass} ${status === 'pending' ? 'animate-spin' : ''}`}
         />
       )}
-      <span className={`text-sm font-medium text-center ${config.textClass}`}>
+      <span className={`text-xs sm:text-sm font-medium text-center ${config.textClass}`}>
         {dayNumber}
       </span>
     </Link>
