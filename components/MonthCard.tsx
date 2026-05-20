@@ -65,30 +65,46 @@ export default function MonthCard({ monthKey, monthLabel, year, reports }: Month
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="
-          w-full flex items-center justify-between p-4
+          w-full flex flex-col items-start gap-2 p-4
           hover:bg-gray-50 transition-colors duration-150
           cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E40AF] focus-visible:ring-offset-2
         "
         aria-expanded={isExpanded}
       >
-        <div className="flex items-center gap-3">
-          <span
-            className="text-lg font-semibold text-[#450A0A]"
-            style={{ fontFamily: 'Newsreader, serif' }}
-          >
-            {monthLabel}
-          </span>
-          <span
-            className="text-xs px-2 py-1 rounded-full bg-[#FEF2F2] text-[#DC2626] font-medium"
-            style={{ fontFamily: 'Roboto, sans-serif' }}
-          >
-            {reports.length} {reports.length === 1 ? 'report' : 'reports'}
-          </span>
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-3">
+            <span
+              className="text-lg font-semibold text-[#450A0A]"
+              style={{ fontFamily: 'Newsreader, serif' }}
+            >
+              {monthLabel}
+            </span>
+            <span
+              className="text-xs px-2 py-1 rounded-full bg-[#FEF2F2] text-[#DC2626] font-medium"
+              style={{ fontFamily: 'Roboto, sans-serif' }}
+            >
+              {reports.length} {reports.length === 1 ? 'report' : 'reports'}
+            </span>
+          </div>
+          {isExpanded ? (
+            <ChevronUp className="w-5 h-5 text-gray-500" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-500" />
+          )}
         </div>
-        {isExpanded ? (
-          <ChevronUp className="w-5 h-5 text-gray-500" />
-        ) : (
-          <ChevronDown className="w-5 h-5 text-gray-500" />
+
+        {isExpanded && (
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1 w-full">
+            {dayHeaders.map((day) => (
+              <div
+                key={day}
+                className="text-center text-[10px] sm:text-xs font-medium text-gray-400 py-0.5 sm:py-1"
+                style={{ fontFamily: 'Roboto, sans-serif' }}
+              >
+                {day.substring(0, 1)}
+              </div>
+            ))}
+          </div>
         )}
       </button>
 
@@ -98,17 +114,6 @@ export default function MonthCard({ monthKey, monthLabel, year, reports }: Month
         }`}
       >
         <div className="px-2 pb-2 sm:px-4 sm:pb-3">
-          <div className="hidden sm:grid grid-cols-7 gap-1 mb-1">
-            {dayHeaders.map((day) => (
-              <div
-                key={day}
-                className="text-center text-[10px] sm:text-xs font-medium text-gray-400 py-0.5 sm:py-1"
-                style={{ fontFamily: 'Roboto, sans-serif' }}
-              >
-                {day}
-              </div>
-            ))}
-          </div>
           <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
             {cells.map((week, weekIndex) =>
               week.map((cell, dayIndex) => {
