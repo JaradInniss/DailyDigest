@@ -44,7 +44,10 @@ export default async function SettingsPage() {
           </p>
           <div className="mt-4 flex items-center gap-4">
             <span className="text-sm font-medium text-gray-500">
-              {selectedCount} of {categories?.length ?? 20} selected
+              {selectedCount} of 8 selected
+              {selectedCount >= 8 && (
+                <span className="ml-2 text-xs text-[#DC2626]">(Free tier limit)</span>
+              )}
             </span>
             <div className="flex gap-2">
               <form action={setAllCategories.bind(null, true)}>

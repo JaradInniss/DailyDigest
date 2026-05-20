@@ -70,30 +70,36 @@ export default function SummaryCard({
 
       {/* Source URLs */}
       <div className="flex flex-wrap gap-2">
-        {parsedSources.map((source, index) => (
-          <a
-            key={index}
-            href={source.displayUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`
-              inline-flex items-center gap-1
-              px-3 py-1.5 text-sm font-medium
-              rounded-md
-              hover:opacity-80 transition-opacity duration-150
-              cursor-pointer
-              focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1
-              ${
-                source.isArticleUrl
-                  ? 'text-[#1E40AF] bg-blue-50 focus-visible:ring-[#1E40AF]'
-                  : 'text-gray-500 bg-gray-100 focus-visible:ring-gray-400'
-              }
-            `}
-          >
-            <ExternalLink className="h-4 w-4" size={16} />
-            {source.name}
-          </a>
-        ))}
+        {parsedSources.length > 0 ? (
+          parsedSources.map((source, index) => (
+            <a
+              key={index}
+              href={source.displayUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`
+                inline-flex items-center gap-1
+                px-3 py-1.5 text-sm font-medium
+                rounded-md
+                hover:opacity-80 transition-opacity duration-150
+                cursor-pointer
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1
+                ${
+                  source.isArticleUrl
+                    ? 'text-[#1E40AF] bg-blue-50 focus-visible:ring-[#1E40AF]'
+                    : 'text-gray-500 bg-gray-100 focus-visible:ring-gray-400'
+                }
+              `}
+            >
+              <ExternalLink className="h-4 w-4" size={16} />
+              {source.name}
+            </a>
+          ))
+        ) : (
+          <span className="text-xs text-gray-400 italic px-3 py-1.5 rounded-md bg-gray-50">
+            Sources unavailable
+          </span>
+        )}
       </div>
     </article>
   );

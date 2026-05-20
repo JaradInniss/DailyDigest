@@ -4,7 +4,20 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase/server';
 
-export async function toggleCategory(id: string, value: boolean) {
+const MAX_CATEGORIES = 8;
+
+export async function toggleCategory(id: string, value: boolean): Promise<{ error?: string }> {
+  if (value) {
+    const { count } = await supabaseAdmin
+      .from('categories')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_selected', true);
+
+    if ((count ?? 0) >= MAX_CATEGORIES) {
+      return { error: 'limit_reached' };
+    }
+  }
+
   const { error } = await supabaseAdmin
     .from('categories')
     .update({ is_selected: value })
@@ -15,29 +28,31 @@ export async function toggleCategory(id: string, value: boolean) {
   }
 
   revalidatePath('/settings');
+  return {};
 }
 
 export async function setAllCategories(value: boolean) {
-  // Get all category IDs first
   const { data: allCategories, error: fetchError } = await supabaseAdmin
     .from('categories')
-    .select('id');
+    .select('id, label')
+    .order('label');
 
   if (fetchError) {
     throw new Error(`Fetch error: ${fetchError.message}`);
   }
 
-  // Update each category sequentially to ensure proper execution
-  if (allCategories && allCategories.length > 0) {
-    for (const cat of allCategories) {
-      const { error: updateError } = await supabaseAdmin
-        .from('categories')
-        .update({ is_selected: value })
-        .eq('id', cat.id);
+  const categoriesToUpdate = value
+    ? allCategories?.slice(0, MAX_CATEGORIES) ?? []
+    : allCategories ?? [];
 
-      if (updateError) {
-        throw new Error(`Update failed: ${updateError.message}`);
-      }
+  for (const cat of categoriesToUpdate) {
+    const { error: updateError } = await supabaseAdmin
+      .from('categories')
+      .update({ is_selected: value })
+      .eq('id', cat.id);
+
+    if (updateError) {
+      throw new Error(`Update failed: ${updateError.message}`);
     }
   }
 

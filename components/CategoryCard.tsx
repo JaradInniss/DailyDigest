@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useRef, useEffect } from 'react';
 import { toggleCategory } from '@/app/settings/actions';
+import { useToast } from '@/hooks/useToast';
 import {
   Brain,
   Laptop,
@@ -67,6 +68,7 @@ export default function CategoryCard({ id, slug, label, isSelected, todayReportI
   const [hasError, setHasError] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const Icon = categoryIcons[slug] || Laptop;
+  const { showToast } = useToast();
 
   // Close popover on click outside
   useEffect(() => {
@@ -110,10 +112,16 @@ export default function CategoryCard({ id, slug, label, isSelected, todayReportI
     if (isPending) return;
 
     if (!isSelected) {
-      // User is enabling - show confirmation popover
-      setPopoverState(todayReportId ? 'add-to-report' : 'no-report');
+      startTransition(async () => {
+        const result = await toggleCategory(id, true);
+        if (result?.error === 'limit_reached') {
+          showToast('Category limit reached (8 max). Deselect one to enable another.', 'error');
+          await toggleCategory(id, false);
+        } else {
+          setPopoverState(todayReportId ? 'add-to-report' : 'no-report');
+        }
+      });
     } else {
-      // User is disabling - just toggle off without confirmation
       setPopoverState('hidden');
       setHasError(false);
       startTransition(() => {
